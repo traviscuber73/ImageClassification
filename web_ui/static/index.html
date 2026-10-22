@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Image Lab · 내 이미지 분류 모델</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Image Lab 처음으로">
+        <span class="brand-mark" aria-hidden="true">i<span>·</span></span>
+        <span>image lab<span class="brand-label">MY FIRST CLASSIFIER</span></span>
+      </a>
+      <span class="local-badge"><span class="status-dot"></span>내 컴퓨터에서 실행 중</span>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">FROM NOTEBOOK TO REAL LIFE</p>
+          <h1 id="page-title">내가 만든 모델,<br><span>새로운 사진을 만나다.</span></h1>
+          <p class="intro-text">사진 한 장을 선택하고, 학습한 모델이 어떻게 분류하는지 확인해 보세요.</p>
+        </div>
+        <div class="flow" aria-label="사진 선택, 모델 예측, 결과 확인">
+          <span><b>01</b> 사진 선택</span><i aria-hidden="true">→</i>
+          <span><b>02</b> 모델 예측</span><i aria-hidden="true">→</i>
+          <span><b>03</b> 결과 확인</span>
+        </div>
+      </section>
+
+      <section class="model-strip" aria-label="모델 상태">
+        <span class="model-symbol" aria-hidden="true">✳</span>
+        <div class="model-state">
+          <strong id="status-title">모델을 준비하고 있어요</strong>
+          <span id="status-message" role="status" aria-live="polite">저장된 학습 결과를 불러오는 중…</span>
+        </div>
+        <span class="device-pill" id="device-badge">연결 중</span>
+      </section>
+      <div id="error-box" class="error-box" role="alert" hidden></div>
+
+      <div class="workspace">
+        <section class="panel input-panel" aria-labelledby="input-title">
+          <div class="panel-heading"><h2 id="input-title"><span>01</span>사진 선택</h2><span class="tiny-tag">INPUT</span></div>
+          <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp,image/bmp" hidden>
+          <button class="drop-zone" id="drop-zone" type="button" aria-label="분류할 사진 선택. 사진을 끌어다 놓을 수도 있습니다.">
+            <span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="7" y="7" width="34" height="34" rx="7"/><circle cx="18" cy="18" r="3"/><path d="m9 34 10-10 8 8 5-5 8 8"/></svg></span>
+            <strong>여기에 사진을 놓아 주세요</strong>
+            <span>또는 클릭해서 파일 선택</span>
+            <small>JPG, PNG, WEBP, BMP · 최대 20MB</small>
+          </button>
+          <div class="preview-box" id="preview-box" hidden>
+            <img id="preview-image" alt="선택한 사진 미리보기">
+            <button class="change-photo" id="change-photo" type="button">사진 바꾸기 ↗</button>
+          </div>
+          <div class="file-line"><span id="file-name">아직 선택한 사진이 없어요</span><span id="file-size"></span></div>
+          <button class="predict-button" id="predict-button" type="button" disabled><span id="predict-label">이 사진 분류하기</span><span aria-hidden="true">→</span></button>
+          <p class="local-note"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M6 9V6a4 4 0 0 1 8 0v3"/></svg>사진은 내 컴퓨터에서만 처리하며 저장하지 않아요.</p>
+        </section>
+
+        <section class="panel result-panel" aria-labelledby="result-title" aria-busy="false" id="result-panel">
+          <div class="panel-heading"><h2 id="result-title"><span>02</span>분류 결과</h2><span class="tiny-tag">PREDICTION</span></div>
+          <div id="result-empty" class="result-empty">
+            <div class="empty-illustration" aria-hidden="true"><span class="face face-happy"><i></i><i></i><b></b></span><span class="face face-sad"><i></i><i></i><b></b></span></div>
+            <h3>이 사진은 어느 쪽일까요?</h3>
+            <p>사진을 선택한 다음<br>‘이 사진 분류하기’를 눌러 보세요.</p>
+            <div class="class-pills" id="class-pills"><span>happy</span><span>sad</span></div>
+          </div>
+          <div id="result-loading" class="result-loading" role="status" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <h3>모델이 사진을 살펴보고 있어요</h3>
+            <p id="loading-message">첫 번째 분류는 GPU 준비로 시간이 더 걸릴 수 있어요.</p>
+            <span id="elapsed-time">0.0초</span>
+          </div>
+          <div id="result-content" class="result-content" aria-live="polite" hidden>
+            <p class="result-kicker">모델이 선택한 클래스</p>
+            <div class="prediction-line"><h3 id="predicted-name"></h3><span class="prediction-icon" id="prediction-icon" aria-hidden="true">↗</span></div>
+            <p class="result-file" id="result-file"></p>
+            <div id="probability-bars" class="probability-bars"></div>
+            <div class="result-meta"><span>분류 소요 시간 <b id="inference-time"></b></span><span id="inference-device"></span></div>
+            <div class="score-note"><span aria-hidden="true">ⓘ</span><p>표시된 수치는 두 클래스에 대한 모델의 예측 점수예요. 실제 감정이나 정답을 보장하지 않아요.</p></div>
+          </div>
+        </section>
+      </div>
+
+      <details class="model-details" id="model-details">
+        <summary><span>모델 정보 및 설정</span><span id="model-summary">저장된 모델 연결 중</span><span class="expand-mark" aria-hidden="true">+</span></summary>
+        <div class="settings-body">
+          <div class="setting-fields">
+            <label>저장된 모델<select id="model-select" aria-label="저장된 모델 선택"></select></label>
+            <label>계산 장치<select id="device-select"><option value="xpu">Intel GPU</option><option value="cpu">CPU</option></select></label>
+            <button type="button" class="secondary-button" id="reload-model">모델 불러오기</button>
+          </div>
+          <div class="model-facts"><span>학습 완료 <b id="epochs-value">—</b></span><span>입력 크기 <b id="image-size-value">—</b></span><span>모델 <b>SmallCNN-v1</b></span></div>
+          <p>노트북에서 학습을 추가했다면 ‘모델 불러오기’를 눌러 저장된 결과를 다시 읽어 주세요. 사진을 바꿀 때는 다시 학습할 필요가 없어요.</p>
+        </div>
+      </details>
+    </main>
+    <footer><span>Image Lab <span class="footer-divider">/</span> 나의 첫 이미지 분류 프로젝트</span><span>PyTorch · Local inference</span></footer>
+  </div>
+</body>
+</html>
